@@ -3,7 +3,7 @@
 Fences is a turn-based strategy game where two players compete to form a continuous path before their opponent. The game is inspired by classic connection-based games like Hex and Bridge-It.
 
 ## 🚀 Live Demo
-[Click here to play the game](#) *(Add your live link here once deployed)*
+[Click here to play the game](fencesgame.netlify.app) *(Add your live link here once deployed)*
 
 ## 📌 Game Rules
 - 🔵 **Blue Player**: Connects **from left to right**.
@@ -13,8 +13,8 @@ Fences is a turn-based strategy game where two players compete to form a continu
 - 🏆 **First player to create a complete path from one side to the other wins!**
 
 ## 🖥️ Screenshots
-![Fences Game Screenshot](./screenshot.png) *(Replace with actual image path)*
-
+![Fences Game Screenshot](![Screenshot 2025-03-21 205324](https://github.com/user-attachments/assets/7e594247-c3dd-4912-9090-ffcd328b5bb4)
+) 
 ## 💡 Features
 - 🎨 Clean and **responsive UI** with a modern design.
 - 🔄 **New Game** button to reset and start a fresh round.
