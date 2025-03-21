@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dot Pattern Maker</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        #canvas {
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            cursor: crosshair;
+            background: white;
+            border-radius: 10px;
+        }
+        .controls {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .color-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            transition: transform 0.2s;
+        }
+        .color-btn:hover {
+            transform: scale(1.05);
+        }
+        #blueBtn {
+            background-color: rgba(0, 102, 204, 0.8);
+        }
+        #redBtn {
+            background-color: rgba(204, 0, 0, 0.8);
+        }
+        .active {
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+        #clearBtn {
+            padding: 10px 20px;
+            background-color: rgba(51, 51, 51, 0.8);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        #clearBtn:hover {
+            transform: scale(1.05);
+        }
+        #coordinates {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 14px;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 200px;
+        }
+        #imageInput {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="controls">
+            <div class="button-group">
+                <button id="borderBtn" class="color-btn active">Border Dots</button>
+                <button id="innerBtn" class="color-btn">Inner Dots</button>
+                <button id="undoBtn" class="color-btn" style="background-color: rgba(102, 51, 153, 0.8);">Undo</button>
+            </div>
+            <div class="button-group">
+                <button id="blueBtn" class="color-btn active">Blue</button>
+                <button id="redBtn" class="color-btn">Red</button>
+            </div>
+            <button id="clearBtn">Clear Canvas</button>
+            <input type="file" id="imageInput" accept="image/*">
+        </div>
+        <canvas id="canvas" width="600" height="600"></canvas>
+        <div id="coordinates">
+            <h3 style="margin-top: 0">Dot Coordinates</h3>
+            <div id="coordList"></div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const blueBtn = document.getElementById('blueBtn');
+        const redBtn = document.getElementById('redBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const borderBtn = document.getElementById('borderBtn');
+        const innerBtn = document.getElementById('innerBtn');
+        const undoBtn = document.getElementById('undoBtn');
+        let currentColor = 'blue';
+        let currentType = 'border';
+        const dots = [
+            // Red border dots (top and bottom)
+            {x: 45, y: 45, color: 'red', type: 'border'},
+            {x: 100, y: 45, color: 'red', type: 'border'},
+            {x: 210, y: 45, color: 'red', type: 'border'},
+            {x: 320, y: 45, color: 'red', type: 'border'},
+            {x: 425, y: 45, color: 'red', type: 'border'},
+            {x: 535, y: 45, color: 'red', type: 'border'},
+            {x: 590, y: 45, color: 'red', type: 'border'},
+            {x: 590, y: 590, color: 'red', type: 'border'},
+            {x: 535, y: 590, color: 'red', type: 'border'},
+            {x: 425, y: 590, color: 'red', type: 'border'},
+            {x: 320, y: 590, color: 'red', type: 'border'},
+            {x: 210, y: 590, color: 'red', type: 'border'},
+            {x: 100, y: 590, color: 'red', type: 'border'},
+            {x: 45, y: 590, color: 'red', type: 'border'},
+            // Blue border dots (left and right)
+            {x: 590, y: 100, color: 'blue', type: 'border'},
+            {x: 590, y: 200, color: 'blue', type: 'border'},
+            {x: 590, y: 315, color: 'blue', type: 'border'},
+            {x: 590, y: 425, color: 'blue', type: 'border'},
+            {x: 590, y: 530, color: 'blue', type: 'border'},
+            {x: 45, y: 530, color: 'blue', type: 'border'},
+            {x: 45, y: 425, color: 'blue', type: 'border'},
+            {x: 45, y: 315, color: 'blue', type: 'border'},
+            {x: 45, y: 200, color: 'blue', type: 'border'},
+            {x: 45, y: 100, color: 'blue', type: 'border'},
+            // Blue inner dots
+            {x: 154, y: 95, color: 'blue', type: 'inner'},
+            {x: 259, y: 95, color: 'blue', type: 'inner'},
+            {x: 373, y: 95, color: 'blue', type: 'inner'},
+            {x: 478, y: 97, color: 'blue', type: 'inner'},
+            {x: 478, y: 206, color: 'blue', type: 'inner'},
+            {x: 369, y: 205, color: 'blue', type: 'inner'},
+            {x: 260, y: 203, color: 'blue', type: 'inner'},
+            {x: 153, y: 205, color: 'blue', type: 'inner'},
+            {x: 153, y: 316, color: 'blue', type: 'inner'},
+            {x: 259, y: 311, color: 'blue', type: 'inner'},
+            {x: 370, y: 312, color: 'blue', type: 'inner'},
+            {x: 475, y: 312, color: 'blue', type: 'inner'},
+            {x: 153, y: 423, color: 'blue', type: 'inner'},
+            {x: 261, y: 426, color: 'blue', type: 'inner'},
+            {x: 370, y: 423, color: 'blue', type: 'inner'},
+            {x: 480, y: 424, color: 'blue', type: 'inner'},
+            {x: 480, y: 531, color: 'blue', type: 'inner'},
+            {x: 370, y: 530, color: 'blue', type: 'inner'},
+            {x: 261, y: 533, color: 'blue', type: 'inner'},
+            {x: 153, y: 529, color: 'blue', type: 'inner'},
+            // Red inner dots
+            {x: 99, y: 151, color: 'red', type: 'inner'},
+            {x: 205, y: 149, color: 'red', type: 'inner'},
+            {x: 316, y: 151, color: 'red', type: 'inner'},
+            {x: 424, y: 151, color: 'red', type: 'inner'},
+            {x: 531, y: 150, color: 'red', type: 'inner'},
+            {x: 101, y: 261, color: 'red', type: 'inner'},
+            {x: 205, y: 260, color: 'red', type: 'inner'},
+            {x: 320, y: 259, color: 'red', type: 'inner'},
+            {x: 424, y: 260, color: 'red', type: 'inner'},
+            {x: 533, y: 259, color: 'red', type: 'inner'},
+            {x: 532, y: 367, color: 'red', type: 'inner'},
+            {x: 424, y: 366, color: 'red', type: 'inner'},
+            {x: 314, y: 370, color: 'red', type: 'inner'},
+            {x: 206, y: 367, color: 'red', type: 'inner'},
+            {x: 98, y: 368, color: 'red', type: 'inner'},
+            {x: 100, y: 477, color: 'red', type: 'inner'},
+            {x: 206, y: 476, color: 'red', type: 'inner'},
+            {x: 315, y: 476, color: 'red', type: 'inner'},
+            {x: 426, y: 475, color: 'red', type: 'inner'},
+            {x: 534, y: 477, color: 'red', type: 'inner'}
+        ];
+        let backgroundImage = null;
+        const coordList = document.getElementById('coordList');
+
+        // Draw initial dots
+        redrawDots();
+
+        // Set white background
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        function drawDot(x, y, color) {
+            ctx.beginPath();
+            ctx.arc(x, y, 8, 0, Math.PI * 2);
+            ctx.fillStyle = color === 'blue' ? '#0066cc' : '#cc0000';
+            ctx.fill();
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        function updateCoordinatesList() {
+            coordList.innerHTML = dots.map((dot, index) => 
+                `<div>Dot ${index + 1}: (${Math.round(dot.x)}, ${Math.round(dot.y)}) - ${dot.color} (${dot.type})</div>`
+            ).join('');
+        }
+
+        function drawGrid() {
+            const gridSize = 50;
+            ctx.beginPath();
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+
+            // Draw vertical lines
+            for (let x = 0; x <= canvas.width; x += gridSize) {
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+            }
+
+            // Draw horizontal lines
+            for (let y = 0; y <= canvas.height; y += gridSize) {
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+            }
+
+            ctx.stroke();
+        }
+
+        function redrawDots() {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            if (backgroundImage) {
+                canvas.width = backgroundImage.width;
+                canvas.height = backgroundImage.height;
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(backgroundImage, 0, 0);
+            }
+
+            drawGrid();
+
+            // Draw connecting lines for border dots
+            const redBorderDots = dots.filter(dot => dot.type === 'border' && dot.color === 'red');
+            const blueBorderDots = dots.filter(dot => dot.type === 'border' && dot.color === 'blue');
+
+            // Draw red lines (top and bottom)
+            ctx.beginPath();
+            ctx.strokeStyle = '#cc0000';
+            ctx.lineWidth = 2;
+            const topRedDots = redBorderDots.filter(dot => dot.y < canvas.height / 2);
+            const bottomRedDots = redBorderDots.filter(dot => dot.y > canvas.height / 2);
+            
+            if (topRedDots.length > 0) {
+                ctx.moveTo(topRedDots[0].x, topRedDots[0].y);
+                topRedDots.forEach(dot => ctx.lineTo(dot.x, dot.y));
+            }
+            if (bottomRedDots.length > 0) {
+                ctx.moveTo(bottomRedDots[0].x, bottomRedDots[0].y);
+                bottomRedDots.forEach(dot => ctx.lineTo(dot.x, dot.y));
+            }
+            ctx.stroke();
+
+            // Draw blue lines (left and right)
+            ctx.beginPath();
+            ctx.strokeStyle = '#0066cc';
+            const leftBlueDots = blueBorderDots.filter(dot => dot.x < canvas.width / 2);
+            const rightBlueDots = blueBorderDots.filter(dot => dot.x > canvas.width / 2);
+            
+            if (leftBlueDots.length > 0) {
+                ctx.moveTo(leftBlueDots[0].x, leftBlueDots[0].y);
+                leftBlueDots.forEach(dot => ctx.lineTo(dot.x, dot.y));
+            }
+            if (rightBlueDots.length > 0) {
+                ctx.moveTo(rightBlueDots[0].x, rightBlueDots[0].y);
+                rightBlueDots.forEach(dot => ctx.lineTo(dot.x, dot.y));
+            }
+            ctx.stroke();
+            
+            // Draw all dots
+            dots.forEach(dot => drawDot(dot.x, dot.y, dot.color));
+            updateCoordinatesList();
+        }
+
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const canvasX = (e.clientX - rect.left) * scaleX;
+            const canvasY = (e.clientY - rect.top) * scaleY;
+            dots.push({ x: canvasX, y: canvasY, color: currentColor, type: currentType });
+            redrawDots();
+        });
+
+        blueBtn.addEventListener('click', () => {
+            currentColor = 'blue';
+            blueBtn.classList.add('active');
+            redBtn.classList.remove('active');
+        });
+
+        redBtn.addEventListener('click', () => {
+            currentColor = 'red';
+            redBtn.classList.add('active');
+            blueBtn.classList.remove('active');
+        });
+
+        clearBtn.addEventListener('click', () => {
+            dots.length = 0;
+            redrawDots();
+        });
+
+        undoBtn.addEventListener('click', () => {
+            if (dots.length > 0) {
+                dots.pop();
+                redrawDots();
+            }
+        });
+
+        borderBtn.addEventListener('click', () => {
+            currentType = 'border';
+            borderBtn.classList.add('active');
+            innerBtn.classList.remove('active');
+        });
+
+        innerBtn.addEventListener('click', () => {
+            currentType = 'inner';
+            innerBtn.classList.add('active');
+            borderBtn.classList.remove('active');
+        });
+
+
+        document.getElementById('imageInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        ctx.fillStyle = 'white';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0);
+                        backgroundImage = img;
+                        dots.length = 0; // Clear existing dots when new image is loaded
+                        updateCoordinatesList();
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html>

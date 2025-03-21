@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fences Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="game-header">
+            <h1>Fences</h1>
+            <div class="menu">
+                <button id="newGameBtn">New Game</button>
+                <button id="toggleRulesBtn">Show Rules</button>
+            </div>
+        </div>
+        
+        <div class="rules-box collapsed" id="rulesBox">
+            <h3>Game Rules</h3>
+            <ul>
+                <li>🔵 Blue player connects from left to right</li>
+                <li>🔴 Red player connects from top to bottom</li>
+                <li>Players take turns connecting adjacent dots of their color</li>
+                <li>Lines cannot cross each other</li>
+                <li>First player to create a complete path wins!</li>
+            </ul>
+        </div>
+
+        <div class="game-status">
+            <div id="currentPlayer" class="player-indicator">
+                Current Player: <span class="blue-player">Blue</span>
+            </div>
+            <div id="gameMessage"></div>
+        </div>
+        
+        <div class="game-board" id="gameBoard"></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
